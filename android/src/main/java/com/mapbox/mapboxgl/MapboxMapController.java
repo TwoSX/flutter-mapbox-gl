@@ -262,6 +262,11 @@ final class MapboxMapController
     mapboxMap.addOnCameraMoveListener(this);
     mapboxMap.addOnCameraIdleListener(this);
 
+    // 移除Logo判断的感叹号按钮
+    mapboxMap.getUiSettings().setAttributionEnabled(false);
+    // 移除Logo
+    // mapboxMap.getUiSettings().setLogoEnabled(false);
+
     mapView.addOnStyleImageMissingListener((id) -> {
       DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
       final Bitmap bitmap = getScaledImage(id, displayMetrics.density);
