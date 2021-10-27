@@ -117,8 +117,8 @@ class MethodChannelMapboxGl extends MapboxGlPlatform {
   @override
   Future<void> initPlatform(int id) async {
     _channel = MethodChannel('plugins.flutter.io/mapbox_maps_$id');
-    await _channel.invokeMethod('map#waitForMap');
     _channel.setMethodCallHandler(_handleMethodCall);
+    await _channel.invokeMethod('map#waitForMap');
   }
 
   @override
@@ -501,7 +501,7 @@ class MethodChannelMapboxGl extends MapboxGlPlatform {
   @override
   Future<LatLng> requestMyLocationLatLng() async {
     try {
-      final Map<Object, Object> reply = await _channel.invokeMethod(
+      final Map<dynamic, dynamic> reply = await _channel.invokeMethod(
           'locationComponent#getLastLocation', null);
       double latitude = 0.0, longitude = 0.0;
       if (reply.containsKey('latitude') && reply['latitude'] != null) {
