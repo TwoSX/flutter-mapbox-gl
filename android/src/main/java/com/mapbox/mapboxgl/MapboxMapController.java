@@ -395,6 +395,7 @@ final class MapboxMapController
 
     final Map<String, Object> userLocation = new HashMap<>(6);
     userLocation.put("position", new double[]{location.getLatitude(), location.getLongitude()});
+    userLocation.put("speed", location.getSpeed());
     userLocation.put("altitude", location.getAltitude());
     userLocation.put("bearing", location.getBearing());
     userLocation.put("horizontalAccuracy", location.getAccuracy());
@@ -1403,7 +1404,7 @@ final class MapboxMapController
     if (disposed) {
       return;
     }
-    mapView.onResume();
+    mapView.onPause();
   }
 
   @Override
