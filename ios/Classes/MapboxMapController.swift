@@ -245,6 +245,12 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
             reply["latitude"] = coordinates.latitude as NSObject
             reply["longitude"] = coordinates.longitude as NSObject
             result(reply)
+        case "map#takeSnapshot":
+            let render = UIGraphicsImageRenderer(size: mapView.bounds.size)
+            let image = render.image { ctx in
+                mapView.drawHierarchy(in: self.mapView.bounds, afterScreenUpdates: true)
+            }
+            result(FlutterStandardTypedData(bytes: image.pngData()!))
         case "camera#move":
             guard let arguments = methodCall.arguments as? [String: Any] else { return }
             guard let cameraUpdate = arguments["cameraUpdate"] as? [Any] else { return }

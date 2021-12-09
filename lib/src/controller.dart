@@ -982,6 +982,11 @@ class MapboxMapController extends ChangeNotifier {
     return _mapboxGlPlatform.getMetersPerPixelAtLatitude(latitude);
   }
 
+  /// Returns the image bytes of the map
+  Future<Uint8List> takeSnapshot() async {
+    return await _mapboxGlPlatform.takeSnapshot();
+  }
+
   @override
   void dispose() {
     super.dispose();

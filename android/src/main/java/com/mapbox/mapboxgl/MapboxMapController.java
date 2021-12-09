@@ -88,6 +88,7 @@ import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry;
 import io.flutter.plugin.platform.PlatformView;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -635,6 +636,16 @@ final class MapboxMapController
         Double retVal = mapboxMap.getProjection().getMetersPerPixelAtLatitude((Double)call.argument("latitude"));
         reply.put("metersperpixel", retVal);
         result.success(reply);
+        break;
+      }
+      case "map#takeSnapshot": {
+        mapboxMap.snapshot(bitmap -> {
+          ByteArrayOutputStream stream = new ByteArrayOutputStream();
+          bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+          byte[] byteArray = stream.toByteArray();
+          bitmap.recycle();
+          result.success(byteArray);
+        });
         break;
       }
       case "camera#move": {

@@ -729,6 +729,15 @@ class MethodChannelMapboxGl extends MapboxGlPlatform {
   }
 
   @override
+  Future<Uint8List> takeSnapshot() async {
+    try {
+      return await _channel.invokeMethod('map#takeSnapshot');
+    } on PlatformException catch (e) {
+      return new Future.error(e);
+    }
+  }
+
+  @override
   Future<void> addGeoJsonSource(String sourceId, Map<String, dynamic> geojson,
       {String? promoteId}) async {
     await _channel.invokeMethod('source#addGeoJson', <String, dynamic>{
