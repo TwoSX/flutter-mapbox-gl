@@ -11,6 +11,7 @@ import 'package:mapbox_gl_example/offline_regions.dart';
 import 'package:mapbox_gl_example/place_batch.dart';
 import 'package:mapbox_gl_example/layer.dart';
 import 'package:mapbox_gl_example/snapshot.dart';
+import 'package:mapbox_gl_example/sources.dart';
 
 import 'animate_camera.dart';
 import 'annotation_order_maps.dart';
@@ -45,7 +46,8 @@ final List<ExamplePage> _allPages = <ExamplePage>[
   CustomMarkerPage(),
   BatchAddPage(),
   ClickAnnotationPage(),
-  SnapshotPage()
+  SnapshotPage(),
+  Sources()
 ];
 
 class MapsDemo extends StatelessWidget {
