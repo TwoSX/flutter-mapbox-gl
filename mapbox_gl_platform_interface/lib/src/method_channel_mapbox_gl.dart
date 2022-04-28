@@ -24,6 +24,19 @@ class MethodChannelMapboxGl extends MapboxGlPlatform {
           'latLng': LatLng(lat, lng)
         });
         break;
+      case 'feature#onLongTap':
+        final id = call.arguments['id'];
+        final double x = call.arguments['x'];
+        final double y = call.arguments['y'];
+        final double lng = call.arguments['lng'];
+        final double lat = call.arguments['lat'];
+        print('feature#onLongTap');
+        onFeatureLongTappedPlatform({
+          'id': id,
+          'point': Point<double>(x, y),
+          'latLng': LatLng(lat, lng)
+        });
+        break;
       case 'feature#onDrag':
         final id = call.arguments['id'];
         final double x = call.arguments['x'];

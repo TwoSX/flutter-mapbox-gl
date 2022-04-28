@@ -70,6 +70,13 @@ class MapboxMapController extends ChangeNotifier {
       }
     });
 
+    _mapboxGlPlatform.onFeatureLongTappedPlatform.add((payload) {
+      for (final fun
+      in List<OnFeatureInteractionCallback>.from(onFeatureLongTapped)) {
+        fun(payload["id"], payload["point"], payload["latLng"]);
+      }
+    });
+
     _mapboxGlPlatform.onFeatureDraggedPlatform.add((payload) {
       for (final fun in List<OnFeatureDragnCallback>.from(onFeatureDrag)) {
         fun(payload["id"],
@@ -107,20 +114,36 @@ class MapboxMapController extends ChangeNotifier {
         final enableInteraction = interactionEnabled.contains(type);
         switch (type) {
           case AnnotationType.fill:
-            fillManager = FillManager(this,
-                onTap: onFillTapped, enableInteraction: enableInteraction);
+            fillManager = FillManager(
+              this,
+              onTap: onFillTapped,
+              onLongTap: onFillLongTapped,
+              enableInteraction: enableInteraction,
+            );
             break;
           case AnnotationType.line:
-            lineManager = LineManager(this,
-                onTap: onLineTapped, enableInteraction: enableInteraction);
+            lineManager = LineManager(
+              this,
+              onTap: onLineTapped,
+              onLongTap: onLineLongTapped,
+              enableInteraction: enableInteraction,
+            );
             break;
           case AnnotationType.circle:
-            circleManager = CircleManager(this,
-                onTap: onCircleTapped, enableInteraction: enableInteraction);
+            circleManager = CircleManager(
+              this,
+              onTap: onCircleTapped,
+              onLongTap: onCircleLongTapped,
+              enableInteraction: enableInteraction,
+            );
             break;
           case AnnotationType.symbol:
-            symbolManager = SymbolManager(this,
-                onTap: onSymbolTapped, enableInteraction: enableInteraction);
+            symbolManager = SymbolManager(
+              this,
+              onTap: onSymbolTapped,
+              onLongTap: onSymbolLongTapped,
+              enableInteraction: enableInteraction,
+            );
             break;
           default:
         }
@@ -193,13 +216,24 @@ class MapboxMapController extends ChangeNotifier {
   final ArgumentCallbacks<Symbol> onSymbolTapped = ArgumentCallbacks<Symbol>();
 
   /// Callbacks to receive tap events for symbols placed on this map.
+  final ArgumentCallbacks<Symbol> onSymbolLongTapped = ArgumentCallbacks<Symbol>();
+
+  /// Callbacks to receive tap events for symbols placed on this map.
   final ArgumentCallbacks<Circle> onCircleTapped = ArgumentCallbacks<Circle>();
+
+  /// Callbacks to receive tap events for symbols placed on this map.
+  final ArgumentCallbacks<Circle> onCircleLongTapped = ArgumentCallbacks<Circle>();
 
   /// Callbacks to receive tap events for fills placed on this map.
   final ArgumentCallbacks<Fill> onFillTapped = ArgumentCallbacks<Fill>();
 
+  /// Callbacks to receive tap events for fills placed on this map.
+  final ArgumentCallbacks<Fill> onFillLongTapped = ArgumentCallbacks<Fill>();
+
   /// Callbacks to receive tap events for features (geojson layer) placed on this map.
   final onFeatureTapped = <OnFeatureInteractionCallback>[];
+
+  final onFeatureLongTapped = <OnFeatureInteractionCallback>[];
 
   final onFeatureDrag = <OnFeatureDragnCallback>[];
 
@@ -215,6 +249,9 @@ class MapboxMapController extends ChangeNotifier {
 
   /// Callbacks to receive tap events for lines placed on this map.
   final ArgumentCallbacks<Line> onLineTapped = ArgumentCallbacks<Line>();
+
+  /// Callbacks to receive tap events for lines placed on this map.
+  final ArgumentCallbacks<Line> onLineLongTapped = ArgumentCallbacks<Line>();
 
   /// The current set of lines on this map.
   ///

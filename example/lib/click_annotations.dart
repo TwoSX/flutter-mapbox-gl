@@ -34,17 +34,25 @@ class ClickAnnotationBodyState extends State<ClickAnnotationBody> {
   void _onMapCreated(MapboxMapController controller) {
     this.controller = controller;
     controller.onFillTapped.add(_onFillTapped);
+    controller.onFillLongTapped.add(_onFillLongTapped);
     controller.onCircleTapped.add(_onCircleTapped);
+    controller.onCircleLongTapped.add(_onCircleLongTapped);
     controller.onLineTapped.add(_onLineTapped);
+    controller.onLineLongTapped.add(_onLineLongTapped);
     controller.onSymbolTapped.add(_onSymbolTapped);
+    controller.onSymbolLongTapped.add(_onSymbolLongTapped);
   }
 
   @override
   void dispose() {
     controller?.onFillTapped.remove(_onFillTapped);
+    controller?.onFillLongTapped.remove(_onFillLongTapped);
     controller?.onCircleTapped.remove(_onCircleTapped);
+    controller?.onCircleLongTapped.remove(_onCircleLongTapped);
     controller?.onLineTapped.remove(_onLineTapped);
+    controller?.onLineLongTapped.remove(_onLineLongTapped);
     controller?.onSymbolTapped.remove(_onSymbolTapped);
+    controller?.onSymbolLongTapped.remove(_onSymbolLongTapped);
     super.dispose();
   }
 
@@ -61,16 +69,32 @@ class ClickAnnotationBodyState extends State<ClickAnnotationBody> {
     _showSnackBar('fill', fill.id);
   }
 
+  void _onFillLongTapped(Fill fill) {
+    _showSnackBar('fill-longTap', fill.id);
+  }
+
   void _onCircleTapped(Circle circle) {
     _showSnackBar('circle', circle.id);
+  }
+
+  void _onCircleLongTapped(Circle circle) {
+    _showSnackBar('circle-longTap', circle.id);
   }
 
   void _onLineTapped(Line line) {
     _showSnackBar('line', line.id);
   }
 
+  void _onLineLongTapped(Line line) {
+    _showSnackBar('line-longTap', line.id);
+  }
+
   void _onSymbolTapped(Symbol symbol) {
     _showSnackBar('symbol', symbol.id);
+  }
+
+  void _onSymbolLongTapped(Symbol symbol) {
+    _showSnackBar('symbol-longTap', symbol.id);
   }
 
   void _onStyleLoaded() {

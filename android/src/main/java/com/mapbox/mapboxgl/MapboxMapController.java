@@ -1054,12 +1054,19 @@ final class MapboxMapController
   @Override
   public boolean onMapLongClick(@NonNull LatLng point) {
     PointF pointf = mapboxMap.getProjection().toScreenLocation(point);
-    final Map<String, Object> arguments = new HashMap<>(5);
+    RectF rectF = new RectF(pointf.x - 10, pointf.y - 10, pointf.x + 10, pointf.y + 10);
+    Feature feature = firstFeatureOnLayers(rectF);
+    final Map<String, Object> arguments = new HashMap<>();
     arguments.put("x", pointf.x);
     arguments.put("y", pointf.y);
     arguments.put("lng", point.getLongitude());
     arguments.put("lat", point.getLatitude());
-    methodChannel.invokeMethod("map#onMapLongClick", arguments);
+    if (feature != null) {
+      arguments.put("id", feature.id());
+      methodChannel.invokeMethod("feature#onLongTap", arguments);
+    } else {
+      methodChannel.invokeMethod("map#onMapLongClick", arguments);
+    }
     return true;
   }
 

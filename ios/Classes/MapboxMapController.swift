@@ -817,12 +817,22 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
             // Get the CGPoint where the user tapped.
             let point = sender.location(in: mapView)
             let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
-            channel?.invokeMethod("map#onMapLongClick", arguments: [
-                "x": point.x,
-                "y": point.y,
-                "lng": coordinate.longitude,
-                "lat": coordinate.latitude,
-            ])
+            if let feature = firstFeatureOnLayers(at: point), let id = feature.identifier {
+                channel?.invokeMethod("feature#onLongTap", arguments: [
+                    "id": id,
+                    "x": point.x,
+                    "y": point.y,
+                    "lng": coordinate.longitude,
+                    "lat": coordinate.latitude,
+                ])
+            } else {
+                channel?.invokeMethod("map#onMapLongClick", arguments: [
+                    "x": point.x,
+                    "y": point.y,
+                    "lng": coordinate.longitude,
+                    "lat": coordinate.latitude,
+                ])
+            }
         }
     }
 

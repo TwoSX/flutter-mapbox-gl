@@ -8,6 +8,8 @@ abstract class AnnotationManager<T extends Annotation> {
   /// Called if a annotation is tapped
   final void Function(T)? onTap;
 
+  final void Function(T)? onLongTap;
+
   /// base id of the manager. User [layerdIds] to get the actual ids.
   final String id;
 
@@ -29,9 +31,13 @@ abstract class AnnotationManager<T extends Annotation> {
 
   Set<T> get annotations => _idToAnnotation.values.toSet();
 
-  AnnotationManager(this.controller,
-      {this.onTap, this.selectLayer, required this.enableInteraction})
-      : id = getRandomString() {
+  AnnotationManager(
+    this.controller, {
+    this.onTap,
+    this.onLongTap,
+    this.selectLayer,
+    required this.enableInteraction,
+  }) : id = getRandomString() {
     for (var i = 0; i < allLayerProperties.length; i++) {
       final layerId = _makeLayerId(i);
       controller.addGeoJsonSource(layerId, buildFeatureCollection([]),
@@ -42,6 +48,11 @@ abstract class AnnotationManager<T extends Annotation> {
     if (onTap != null) {
       controller.onFeatureTapped.add(_onFeatureTapped);
     }
+
+    if (onLongTap != null) {
+      controller.onFeatureLongTapped.add(_onFeatureLongTapped);
+    }
+
     controller.onFeatureDrag.add(_onDrag);
   }
 
@@ -58,7 +69,14 @@ abstract class AnnotationManager<T extends Annotation> {
   _onFeatureTapped(dynamic id, Point<double> point, LatLng coordinates) {
     final annotation = _idToAnnotation[id];
     if (annotation != null) {
-      onTap!(annotation);
+      onTap?.call(annotation);
+    }
+  }
+
+  _onFeatureLongTapped(dynamic id, Point<double> point, LatLng coordinates) {
+    final annotation = _idToAnnotation[id];
+    if (annotation != null) {
+      onLongTap?.call(annotation);
     }
   }
 
@@ -159,11 +177,15 @@ abstract class AnnotationManager<T extends Annotation> {
 }
 
 class LineManager extends AnnotationManager<Line> {
-  LineManager(MapboxMapController controller,
-      {void Function(Line)? onTap, bool enableInteraction = true})
-      : super(
+  LineManager(
+    MapboxMapController controller, {
+    void Function(Line)? onTap,
+    void Function(Line)? onLongTap,
+    bool enableInteraction = true,
+  }) : super(
           controller,
           onTap: onTap,
+          onLongTap: onLongTap,
           enableInteraction: enableInteraction,
           selectLayer: (Line line) => line.options.linePattern == null ? 0 : 1,
         );
@@ -189,10 +211,12 @@ class FillManager extends AnnotationManager<Fill> {
   FillManager(
     MapboxMapController controller, {
     void Function(Fill)? onTap,
+    void Function(Fill)? onLongTap,
     bool enableInteraction = true,
   }) : super(
           controller,
           onTap: onTap,
+          onLongTap: onLongTap,
           enableInteraction: enableInteraction,
           selectLayer: (Fill fill) => fill.options.fillPattern == null ? 0 : 1,
         );
@@ -216,11 +240,13 @@ class CircleManager extends AnnotationManager<Circle> {
   CircleManager(
     MapboxMapController controller, {
     void Function(Circle)? onTap,
+    void Function(Circle)? onLongTap,
     bool enableInteraction = true,
   }) : super(
           controller,
           enableInteraction: enableInteraction,
           onTap: onTap,
+          onLongTap: onLongTap,
         );
   @override
   List<LayerProperties> get allLayerProperties => const [
@@ -240,6 +266,7 @@ class SymbolManager extends AnnotationManager<Symbol> {
   SymbolManager(
     MapboxMapController controller, {
     void Function(Symbol)? onTap,
+    void Function(Symbol)? onLongTap,
     bool iconAllowOverlap = false,
     bool textAllowOverlap = false,
     bool iconIgnorePlacement = false,
@@ -253,6 +280,7 @@ class SymbolManager extends AnnotationManager<Symbol> {
           controller,
           enableInteraction: enableInteraction,
           onTap: onTap,
+          onLongTap: onLongTap,
         );
 
   bool _iconAllowOverlap;

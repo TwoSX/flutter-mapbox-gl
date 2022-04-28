@@ -18,6 +18,8 @@ abstract class MapboxGlPlatform {
 
   final onFeatureTappedPlatform = ArgumentCallbacks<Map<String, dynamic>>();
 
+  final onFeatureLongTappedPlatform = ArgumentCallbacks<Map<String, dynamic>>();
+
   final onFeatureDraggedPlatform = ArgumentCallbacks<Map<String, dynamic>>();
 
   final onCameraMoveStartedPlatform = ArgumentCallbacks<void>();
@@ -145,6 +147,7 @@ abstract class MapboxGlPlatform {
     // clear all callbacks to avoid cyclic refs
     onInfoWindowTappedPlatform.clear();
     onFeatureTappedPlatform.clear();
+    onFeatureLongTappedPlatform.clear();
     onFeatureDraggedPlatform.clear();
     onCameraMoveStartedPlatform.clear();
     onCameraMovePlatform.clear();
