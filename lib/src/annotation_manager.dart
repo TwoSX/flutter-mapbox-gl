@@ -115,6 +115,12 @@ abstract class AnnotationManager<T extends Annotation> {
     await _setAll();
   }
 
+  /// Replaces all existing annotations of this list with [annotations]
+  Future<void> assignAll(Iterable<T> annotations) async {
+    _idToAnnotation.clear();
+    await addAll(annotations);
+  }
+
   /// add a single annotation to the map
   Future<void> add(T annotation) async {
     _idToAnnotation[annotation.id] = annotation;
