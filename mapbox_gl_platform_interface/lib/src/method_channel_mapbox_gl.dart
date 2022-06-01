@@ -254,6 +254,13 @@ class MethodChannelMapboxGl extends MapboxGlPlatform {
   }
 
   @override
+  Future<void> setMapStyle(String style) async {
+    await _channel.invokeMethod('map#setStyle', <String, dynamic>{
+      'style': style,
+    });
+  }
+
+  @override
   Future<void> setTelemetryEnabled(bool enabled) async {
     await _channel.invokeMethod('map#setTelemetryEnabled', <String, dynamic>{
       'enabled': enabled,

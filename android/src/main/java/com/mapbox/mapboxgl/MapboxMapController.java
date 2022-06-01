@@ -554,6 +554,14 @@ final class MapboxMapController
         }
         break;
       }
+      case "map#setStyle":
+      {
+        if (mapboxMap != null) {
+          final String style = call.argument("style");
+          mapboxMap.setStyle(style);
+        }
+        result.success(null);
+      }
       case "map#getVisibleRegion":
       {
         Map<String, Object> reply = new HashMap<>();

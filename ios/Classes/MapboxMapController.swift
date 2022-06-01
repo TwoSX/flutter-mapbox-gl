@@ -199,6 +199,12 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
                 style.localizeLabels(into: locale)
             }
             result(nil)
+        case "map#setStyle":
+            guard let arguments = methodCall.arguments as? [String: Any] else { return }
+            if let style = arguments["style"] as? String {
+                mapView.styleURL = URL(string: style);
+            }
+            result(nil)
         case "map#queryRenderedFeatures":
             guard let arguments = methodCall.arguments as? [String: Any] else { return }
             let layerIds = arguments["layerIds"] as? Set<String>
