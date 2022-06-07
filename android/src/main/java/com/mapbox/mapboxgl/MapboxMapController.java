@@ -557,10 +557,18 @@ final class MapboxMapController
       case "map#setStyle":
       {
         if (mapboxMap != null) {
-          final String style = call.argument("style");
-          mapboxMap.setStyle(style);
+          try {
+            final String style = call.argument("style");
+
+            this.setStyleString(style);
+
+            result.success(null);
+          } catch (Exception e) {
+            Log.d(TAG, e.toString());
+            result.error("MAPBOX PLUGIN ERROR", e.toString(), null);
+          }
         }
-        result.success(null);
+        break;
       }
       case "map#getVisibleRegion":
       {
