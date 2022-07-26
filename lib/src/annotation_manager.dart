@@ -127,6 +127,14 @@ abstract class AnnotationManager<T extends Annotation> {
     await _setAll();
   }
 
+  /// Removes multiple annotations from the map
+  Future<void> removeAll(Iterable<T> annotations) async {
+    for (var a in annotations) {
+      _idToAnnotation.remove(a.id);
+    }
+    await _setAll();
+  }
+
   /// Remove a single annotation form the map
   Future<void> remove(T annotation) async {
     _idToAnnotation.remove(annotation.id);
@@ -155,7 +163,8 @@ abstract class AnnotationManager<T extends Annotation> {
       {required Point<double> point,
       required LatLng origin,
       required LatLng current,
-      required LatLng delta}) {
+      required LatLng delta,
+      required DragEventType eventType}) {
     final annotation = byId(id);
     if (annotation != null) {
       annotation.translate(delta);

@@ -192,6 +192,15 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
             } else {
                 result(nil)
             }
+        case "locationComponent#getLastLocation":
+            var reply = [String: NSObject]()
+            if let loc = mapView.userLocation?.location?.coordinate {
+                reply["latitude"] = loc.latitude as NSObject
+                reply["longitude"] = loc.longitude as NSObject
+                result(reply)
+            } else {
+                result(nil)
+            }
         case "map#setMapLanguage":
             guard let arguments = methodCall.arguments as? [String: Any] else { return }
             if let localIdentifier = arguments["language"] as? String, let style = mapView.style {
@@ -207,7 +216,10 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
             result(nil)
         case "map#queryRenderedFeatures":
             guard let arguments = methodCall.arguments as? [String: Any] else { return }
-            let layerIds = arguments["layerIds"] as? Set<String>
+            var styleLayerIdentifiers: Set<String>?
+            if let layerIds = arguments["layerIds"] as? [String] {
+                styleLayerIdentifiers = Set<String>(layerIds)
+            }
             var filterExpression: NSPredicate?
             if let filter = arguments["filter"] as? [Any] {
                 filterExpression = NSPredicate(mglJSONObject: filter)
@@ -217,7 +229,7 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
             if let x = arguments["x"] as? Double, let y = arguments["y"] as? Double {
                 features = mapView.visibleFeatures(
                     at: CGPoint(x: x, y: y),
-                    styleLayerIdentifiers: layerIds,
+                    styleLayerIdentifiers: styleLayerIdentifiers,
                     predicate: filterExpression
                 )
             }
@@ -228,7 +240,7 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
             {
                 features = mapView.visibleFeatures(
                     in: CGRect(x: left, y: top, width: right, height: bottom),
-                    styleLayerIdentifiers: layerIds,
+                    styleLayerIdentifiers: styleLayerIdentifiers,
                     predicate: filterExpression
                 )
             }
@@ -337,8 +349,9 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
                                       animationTimingFunction: CAMediaTimingFunction(name: CAMediaTimingFunctionName
                                           .easeInEaseOut))
                     result(nil)
+                } else {
+                    mapView.setCamera(camera, animated: true)
                 }
-                mapView.setCamera(camera, animated: true)
             }
             result(nil)
 
@@ -350,15 +363,25 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
             guard let enableInteraction = arguments["enableInteraction"] as? Bool else { return }
             let belowLayerId = arguments["belowLayerId"] as? String
             let sourceLayer = arguments["sourceLayer"] as? String
-            addSymbolLayer(
+            let minzoom = arguments["minzoom"] as? Double
+            let maxzoom = arguments["maxzoom"] as? Double
+            let filter = arguments["filter"] as? String
+
+            let addResult = addSymbolLayer(
                 sourceId: sourceId,
                 layerId: layerId,
                 belowLayerId: belowLayerId,
                 sourceLayerIdentifier: sourceLayer,
+                minimumZoomLevel: minzoom,
+                maximumZoomLevel: maxzoom,
+                filter: filter,
                 enableInteraction: enableInteraction,
                 properties: properties
             )
-            result(nil)
+            switch addResult {
+            case .success: result(nil)
+            case let .failure(error): result(error.flutterError)
+            }
 
         case "lineLayer#add":
             guard let arguments = methodCall.arguments as? [String: Any] else { return }
@@ -368,15 +391,25 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
             guard let enableInteraction = arguments["enableInteraction"] as? Bool else { return }
             let belowLayerId = arguments["belowLayerId"] as? String
             let sourceLayer = arguments["sourceLayer"] as? String
-            addLineLayer(
+            let minzoom = arguments["minzoom"] as? Double
+            let maxzoom = arguments["maxzoom"] as? Double
+            let filter = arguments["filter"] as? String
+
+            let addResult = addLineLayer(
                 sourceId: sourceId,
                 layerId: layerId,
                 belowLayerId: belowLayerId,
                 sourceLayerIdentifier: sourceLayer,
+                minimumZoomLevel: minzoom,
+                maximumZoomLevel: maxzoom,
+                filter: filter,
                 enableInteraction: enableInteraction,
                 properties: properties
             )
-            result(nil)
+            switch addResult {
+            case .success: result(nil)
+            case let .failure(error): result(error.flutterError)
+            }
 
         case "fillLayer#add":
             guard let arguments = methodCall.arguments as? [String: Any] else { return }
@@ -386,15 +419,25 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
             guard let enableInteraction = arguments["enableInteraction"] as? Bool else { return }
             let belowLayerId = arguments["belowLayerId"] as? String
             let sourceLayer = arguments["sourceLayer"] as? String
-            addFillLayer(
+            let minzoom = arguments["minzoom"] as? Double
+            let maxzoom = arguments["maxzoom"] as? Double
+            let filter = arguments["filter"] as? String
+
+            let addResult = addFillLayer(
                 sourceId: sourceId,
                 layerId: layerId,
                 belowLayerId: belowLayerId,
                 sourceLayerIdentifier: sourceLayer,
+                minimumZoomLevel: minzoom,
+                maximumZoomLevel: maxzoom,
+                filter: filter,
                 enableInteraction: enableInteraction,
                 properties: properties
             )
-            result(nil)
+            switch addResult {
+            case .success: result(nil)
+            case let .failure(error): result(error.flutterError)
+            }
 
         case "circleLayer#add":
             guard let arguments = methodCall.arguments as? [String: Any] else { return }
@@ -404,15 +447,25 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
             guard let enableInteraction = arguments["enableInteraction"] as? Bool else { return }
             let belowLayerId = arguments["belowLayerId"] as? String
             let sourceLayer = arguments["sourceLayer"] as? String
-            addCircleLayer(
+            let minzoom = arguments["minzoom"] as? Double
+            let maxzoom = arguments["maxzoom"] as? Double
+            let filter = arguments["filter"] as? String
+
+            let addResult = addCircleLayer(
                 sourceId: sourceId,
                 layerId: layerId,
                 belowLayerId: belowLayerId,
                 sourceLayerIdentifier: sourceLayer,
+                minimumZoomLevel: minzoom,
+                maximumZoomLevel: maxzoom,
+                filter: filter,
                 enableInteraction: enableInteraction,
                 properties: properties
             )
-            result(nil)
+            switch addResult {
+            case .success: result(nil)
+            case let .failure(error): result(error.flutterError)
+            }
 
         case "hillshadeLayer#add":
             guard let arguments = methodCall.arguments as? [String: Any] else { return }
@@ -420,10 +473,14 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
             guard let layerId = arguments["layerId"] as? String else { return }
             guard let properties = arguments["properties"] as? [String: String] else { return }
             let belowLayerId = arguments["belowLayerId"] as? String
+            let minzoom = arguments["minzoom"] as? Double
+            let maxzoom = arguments["maxzoom"] as? Double
             addHillshadeLayer(
                 sourceId: sourceId,
                 layerId: layerId,
                 belowLayerId: belowLayerId,
+                minimumZoomLevel: minzoom,
+                maximumZoomLevel: maxzoom,
                 properties: properties
             )
             result(nil)
@@ -434,10 +491,14 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
             guard let layerId = arguments["layerId"] as? String else { return }
             guard let properties = arguments["properties"] as? [String: String] else { return }
             let belowLayerId = arguments["belowLayerId"] as? String
+            let minzoom = arguments["minzoom"] as? Double
+            let maxzoom = arguments["maxzoom"] as? Double
             addRasterLayer(
                 sourceId: sourceId,
                 layerId: layerId,
                 belowLayerId: belowLayerId,
+                minimumZoomLevel: minzoom,
+                maximumZoomLevel: maxzoom,
                 properties: properties
             )
             result(nil)
@@ -505,13 +566,18 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
         case "style#removeSource":
             guard let arguments = methodCall.arguments as? [String: Any] else { return }
             guard let sourceId = arguments["sourceId"] as? String else { return }
-            guard let source = mapView.style?.source(withIdentifier: sourceId) else { return }
+            guard let source = mapView.style?.source(withIdentifier: sourceId) else {
+                result(nil)
+                return
+            }
             mapView.style?.removeSource(source)
             result(nil)
         case "style#addLayer":
             guard let arguments = methodCall.arguments as? [String: Any] else { return }
             guard let imageLayerId = arguments["imageLayerId"] as? String else { return }
             guard let imageSourceId = arguments["imageSourceId"] as? String else { return }
+            let minzoom = arguments["minzoom"] as? Double
+            let maxzoom = arguments["maxzoom"] as? Double
 
             // Check for duplicateLayer error
             if (mapView.style?.layer(withIdentifier: imageLayerId)) != nil {
@@ -533,6 +599,15 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
             }
 
             let layer = MGLRasterStyleLayer(identifier: imageLayerId, source: source)
+
+            if let minzoom = minzoom {
+                layer.minimumZoomLevel = Float(minzoom)
+            }
+
+            if let maxzoom = maxzoom {
+                layer.maximumZoomLevel = Float(maxzoom)
+            }
+
             mapView.style?.addLayer(layer)
             result(nil)
         case "style#addLayerBelow":
@@ -540,6 +615,8 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
             guard let imageLayerId = arguments["imageLayerId"] as? String else { return }
             guard let imageSourceId = arguments["imageSourceId"] as? String else { return }
             guard let belowLayerId = arguments["belowLayerId"] as? String else { return }
+            let minzoom = arguments["minzoom"] as? Double
+            let maxzoom = arguments["maxzoom"] as? Double
 
             // Check for duplicateLayer error
             if (mapView.style?.layer(withIdentifier: imageLayerId)) != nil {
@@ -568,89 +645,43 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
                 ))
                 return
             }
+
             let layer = MGLRasterStyleLayer(identifier: imageLayerId, source: source)
+
+            if let minzoom = minzoom {
+                layer.minimumZoomLevel = Float(minzoom)
+            }
+
+            if let maxzoom = maxzoom {
+                layer.maximumZoomLevel = Float(maxzoom)
+            }
+
             mapView.style?.insertLayer(layer, below: belowLayer)
-            result(nil)
-
-        case "symbolLayer#add":
-            guard let arguments = methodCall.arguments as? [String: Any] else { return }
-            guard let sourceId = arguments["sourceId"] as? String else { return }
-            guard let layerId = arguments["layerId"] as? String else { return }
-            guard let enableInteraction = arguments["enableInteraction"] as? Bool else { return }
-            guard let properties = arguments["properties"] as? [String: String] else { return }
-            let belowLayerId = arguments["belowLayerId"] as? String
-            let sourceLayer = arguments["sourceLayer"] as? String
-            addSymbolLayer(
-                sourceId: sourceId,
-                layerId: layerId,
-                belowLayerId: belowLayerId,
-                sourceLayerIdentifier: sourceLayer,
-                enableInteraction: enableInteraction,
-                properties: properties
-            )
-            result(nil)
-
-        case "lineLayer#add":
-            guard let arguments = methodCall.arguments as? [String: Any] else { return }
-            guard let sourceId = arguments["sourceId"] as? String else { return }
-            guard let layerId = arguments["layerId"] as? String else { return }
-            guard let enableInteraction = arguments["enableInteraction"] as? Bool else { return }
-            guard let properties = arguments["properties"] as? [String: String] else { return }
-            let belowLayerId = arguments["belowLayerId"] as? String
-            let sourceLayer = arguments["sourceLayer"] as? String
-            addLineLayer(
-                sourceId: sourceId,
-                layerId: layerId,
-                belowLayerId: belowLayerId,
-                sourceLayerIdentifier: sourceLayer,
-                enableInteraction: enableInteraction,
-                properties: properties
-            )
-            result(nil)
-
-        case "fillLayer#add":
-            guard let arguments = methodCall.arguments as? [String: Any] else { return }
-            guard let sourceId = arguments["sourceId"] as? String else { return }
-            guard let layerId = arguments["layerId"] as? String else { return }
-            guard let enableInteraction = arguments["enableInteraction"] as? Bool else { return }
-            guard let properties = arguments["properties"] as? [String: String] else { return }
-            let belowLayerId = arguments["belowLayerId"] as? String
-            let sourceLayer = arguments["sourceLayer"] as? String
-            addFillLayer(
-                sourceId: sourceId,
-                layerId: layerId,
-                belowLayerId: belowLayerId,
-                sourceLayerIdentifier: sourceLayer,
-                enableInteraction: enableInteraction,
-                properties: properties
-            )
-            result(nil)
-
-        case "circleLayer#add":
-            guard let arguments = methodCall.arguments as? [String: Any] else { return }
-            guard let sourceId = arguments["sourceId"] as? String else { return }
-            guard let layerId = arguments["layerId"] as? String else { return }
-            guard let enableInteraction = arguments["enableInteraction"] as? Bool else { return }
-            guard let properties = arguments["properties"] as? [String: String] else { return }
-            let belowLayerId = arguments["belowLayerId"] as? String
-            let sourceLayer = arguments["sourceLayer"] as? String
-            addCircleLayer(
-                sourceId: sourceId,
-                layerId: layerId,
-                belowLayerId: belowLayerId,
-                sourceLayerIdentifier: sourceLayer,
-                enableInteraction: enableInteraction,
-                properties: properties
-            )
             result(nil)
 
         case "style#removeLayer":
             guard let arguments = methodCall.arguments as? [String: Any] else { return }
             guard let layerId = arguments["layerId"] as? String else { return }
-            guard let layer = mapView.style?.layer(withIdentifier: layerId) else { return }
+            guard let layer = mapView.style?.layer(withIdentifier: layerId) else {
+                result(nil)
+                return
+            }
             interactiveFeatureLayerIds.remove(layerId)
             mapView.style?.removeLayer(layer)
             result(nil)
+
+        case "style#setFilter":
+            guard let arguments = methodCall.arguments as? [String: Any] else { return }
+            guard let layerId = arguments["layerId"] as? String else { return }
+            guard let filter = arguments["filter"] as? String else { return }
+            guard let layer = mapView.style?.layer(withIdentifier: layerId) else {
+                result(nil)
+                return
+            }
+            switch setFilter(layer, filter) {
+            case .success: result(nil)
+            case let .failure(error): result(error.flutterError)
+            }
 
         case "source#addGeoJson":
             guard let arguments = methodCall.arguments as? [String: Any] else { return }
@@ -684,22 +715,27 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
         }
     }
 
+    private func loadIconImage(name: String) -> UIImage? {
+        // Build up the full path of the asset.
+        // First find the last '/' ans split the image name in the asset directory and the image file name.
+        if let range = name.range(of: "/", options: [.backwards]) {
+            let directory = String(name[..<range.lowerBound])
+            let assetPath = registrar.lookupKey(forAsset: "\(directory)/")
+            let fileName = String(name[range.upperBound...])
+            // If we can load the image from file then add it to the map.
+            return UIImage.loadFromFile(
+                imagePath: assetPath,
+                imageName: fileName
+            )
+        }
+        return nil
+    }
+
     private func addIconImageToMap(iconImageName: String) {
         // Check if the image has already been added to the map.
         if mapView.style?.image(forName: iconImageName) == nil {
-            // Build up the full path of the asset.
-            // First find the last '/' ans split the image name in the asset directory and the image file name.
-            if let range = iconImageName.range(of: "/", options: [.backwards]) {
-                let directory = String(iconImageName[..<range.lowerBound])
-                let assetPath = registrar.lookupKey(forAsset: "\(directory)/")
-                let fileName = String(iconImageName[range.upperBound...])
-                // If we can load the image from file then add it to the map.
-                if let imageFromAsset = UIImage.loadFromFile(
-                    imagePath: assetPath,
-                    imageName: fileName
-                ) {
-                    mapView.style?.setImage(imageFromAsset, forName: iconImageName)
-                }
+            if let imageFromAsset = loadIconImage(name: iconImageName) {
+                mapView.style?.setImage(imageFromAsset, forName: iconImageName)
             }
         }
     }
@@ -762,42 +798,16 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
         }
     }
 
-    /*
-     *  UITapGestureRecognizer
-     *  On pan might invoke the feature#onDrag callback.
-     */
-    @IBAction func handleMapPan(sender: UIPanGestureRecognizer) {
-        let point = sender.location(in: mapView)
-        let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
-
-        if sender.state == UIGestureRecognizer.State.began,
-           sender.numberOfTouches == 1,
-           let feature = firstFeatureOnLayers(at: point),
-           let draggable = feature.attribute(forKey: "draggable") as? Bool,
-           draggable
+    fileprivate func invokeFeatureDrag(
+        _ point: CGPoint,
+        _ coordinate: CLLocationCoordinate2D,
+        _ eventType: String
+    ) {
+        if let feature = dragFeature,
+           let id = feature.identifier,
+           let previous = previousDragCoordinate,
+           let origin = originDragCoordinate
         {
-            dragFeature = feature
-            originDragCoordinate = coordinate
-            previousDragCoordinate = coordinate
-            mapView.allowsScrolling = false
-            for gestureRecognizer in mapView.gestureRecognizers! {
-                if let _ = gestureRecognizer as? UIPanGestureRecognizer {
-                    gestureRecognizer.addTarget(self, action: #selector(handleMapPan))
-                    break
-                }
-            }
-        } else if sender.state == UIGestureRecognizer.State.ended || sender.numberOfTouches != 1 {
-            sender.state = UIGestureRecognizer.State.ended
-            mapView.allowsScrolling = scrollingEnabled
-            dragFeature = nil
-            originDragCoordinate = nil
-            previousDragCoordinate = nil
-        } else if let feature = dragFeature,
-                  let id = feature.identifier,
-                  let previous = previousDragCoordinate,
-                  let origin = originDragCoordinate
-        {
-            print("in drag")
             channel?.invokeMethod("feature#onDrag", arguments: [
                 "id": id,
                 "x": point.x,
@@ -806,9 +816,50 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
                 "originLat": origin.latitude,
                 "currentLng": coordinate.longitude,
                 "currentLat": coordinate.latitude,
+                "eventType": eventType,
                 "deltaLng": coordinate.longitude - previous.longitude,
                 "deltaLat": coordinate.latitude - previous.latitude,
             ])
+        }
+    }
+
+    @IBAction func handleMapPan(sender: UIPanGestureRecognizer) {
+        let began = sender.state == UIGestureRecognizer.State.began
+        let end = sender.state == UIGestureRecognizer.State.ended
+        let point = sender.location(in: mapView)
+        let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
+
+        if dragFeature == nil, began, sender.numberOfTouches == 1,
+           let feature = firstFeatureOnLayers(at: point),
+           let draggable = feature.attribute(forKey: "draggable") as? Bool,
+           draggable
+        {
+            sender.state = UIGestureRecognizer.State.began
+            dragFeature = feature
+            originDragCoordinate = coordinate
+            previousDragCoordinate = coordinate
+            mapView.allowsScrolling = false
+            let eventType = "start"
+            invokeFeatureDrag(point, coordinate, eventType)
+            for gestureRecognizer in mapView.gestureRecognizers! {
+                if let _ = gestureRecognizer as? UIPanGestureRecognizer {
+                    gestureRecognizer.addTarget(self, action: #selector(handleMapPan))
+                    break
+                }
+            }
+        }
+        if end, dragFeature != nil {
+            mapView.allowsScrolling = true
+            let eventType = "end"
+            invokeFeatureDrag(point, coordinate, eventType)
+            dragFeature = nil
+            originDragCoordinate = nil
+            previousDragCoordinate = nil
+        }
+
+        if !began, !end, dragFeature != nil {
+            let eventType = "drag"
+            invokeFeatureDrag(point, coordinate, eventType)
             previousDragCoordinate = coordinate
         }
     }
@@ -895,6 +946,11 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
         }
     }
 
+    // handle missing images
+    func mapView(_: MGLMapView, didFailToLoadImage name: String) -> UIImage? {
+        return loadIconImage(name: name)
+    }
+
     func mapView(_ mapView: MGLMapView, shouldChangeFrom _: MGLMapCamera,
                  to newCamera: MGLMapCamera) -> Bool
     {
@@ -946,9 +1002,12 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
         layerId: String,
         belowLayerId: String?,
         sourceLayerIdentifier: String?,
+        minimumZoomLevel: Double?,
+        maximumZoomLevel: Double?,
+        filter: String?,
         enableInteraction: Bool,
         properties: [String: String]
-    ) {
+    ) -> Result<Void, MethodCallError> {
         if let style = mapView.style {
             if let source = style.source(withIdentifier: sourceId) {
                 let layer = MGLSymbolStyleLayer(identifier: layerId, source: source)
@@ -959,6 +1018,17 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
                 if let sourceLayerIdentifier = sourceLayerIdentifier {
                     layer.sourceLayerIdentifier = sourceLayerIdentifier
                 }
+                if let minimumZoomLevel = minimumZoomLevel {
+                    layer.minimumZoomLevel = Float(minimumZoomLevel)
+                }
+                if let maximumZoomLevel = maximumZoomLevel {
+                    layer.maximumZoomLevel = Float(maximumZoomLevel)
+                }
+                if let filter = filter {
+                    if case let .failure(error) = setFilter(layer, filter) {
+                        return .failure(error)
+                    }
+                }
                 if let id = belowLayerId, let belowLayer = style.layer(withIdentifier: id) {
                     style.insertLayer(layer, below: belowLayer)
                 } else {
@@ -969,6 +1039,7 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
                 }
             }
         }
+        return .success(())
     }
 
     func addLineLayer(
@@ -976,9 +1047,12 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
         layerId: String,
         belowLayerId: String?,
         sourceLayerIdentifier: String?,
+        minimumZoomLevel: Double?,
+        maximumZoomLevel: Double?,
+        filter: String?,
         enableInteraction: Bool,
         properties: [String: String]
-    ) {
+    ) -> Result<Void, MethodCallError> {
         if let style = mapView.style {
             if let source = style.source(withIdentifier: sourceId) {
                 let layer = MGLLineStyleLayer(identifier: layerId, source: source)
@@ -986,6 +1060,17 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
                 if let sourceLayerIdentifier = sourceLayerIdentifier {
                     layer.sourceLayerIdentifier = sourceLayerIdentifier
                 }
+                if let minimumZoomLevel = minimumZoomLevel {
+                    layer.minimumZoomLevel = Float(minimumZoomLevel)
+                }
+                if let maximumZoomLevel = maximumZoomLevel {
+                    layer.maximumZoomLevel = Float(maximumZoomLevel)
+                }
+                if let filter = filter {
+                    if case let .failure(error) = setFilter(layer, filter) {
+                        return .failure(error)
+                    }
+                }
                 if let id = belowLayerId, let belowLayer = style.layer(withIdentifier: id) {
                     style.insertLayer(layer, below: belowLayer)
                 } else {
@@ -996,6 +1081,7 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
                 }
             }
         }
+        return .success(())
     }
 
     func addFillLayer(
@@ -1003,15 +1089,29 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
         layerId: String,
         belowLayerId: String?,
         sourceLayerIdentifier: String?,
+        minimumZoomLevel: Double?,
+        maximumZoomLevel: Double?,
+        filter: String?,
         enableInteraction: Bool,
         properties: [String: String]
-    ) {
+    ) -> Result<Void, MethodCallError> {
         if let style = mapView.style {
             if let source = style.source(withIdentifier: sourceId) {
                 let layer = MGLFillStyleLayer(identifier: layerId, source: source)
                 LayerPropertyConverter.addFillProperties(fillLayer: layer, properties: properties)
                 if let sourceLayerIdentifier = sourceLayerIdentifier {
                     layer.sourceLayerIdentifier = sourceLayerIdentifier
+                }
+                if let minimumZoomLevel = minimumZoomLevel {
+                    layer.minimumZoomLevel = Float(minimumZoomLevel)
+                }
+                if let maximumZoomLevel = maximumZoomLevel {
+                    layer.maximumZoomLevel = Float(maximumZoomLevel)
+                }
+                if let filter = filter {
+                    if case let .failure(error) = setFilter(layer, filter) {
+                        return .failure(error)
+                    }
                 }
                 if let id = belowLayerId, let belowLayer = style.layer(withIdentifier: id) {
                     style.insertLayer(layer, below: belowLayer)
@@ -1023,6 +1123,7 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
                 }
             }
         }
+        return .success(())
     }
 
     func addCircleLayer(
@@ -1030,9 +1131,12 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
         layerId: String,
         belowLayerId: String?,
         sourceLayerIdentifier: String?,
+        minimumZoomLevel: Double?,
+        maximumZoomLevel: Double?,
+        filter: String?,
         enableInteraction: Bool,
         properties: [String: String]
-    ) {
+    ) -> Result<Void, MethodCallError> {
         if let style = mapView.style {
             if let source = style.source(withIdentifier: sourceId) {
                 let layer = MGLCircleStyleLayer(identifier: layerId, source: source)
@@ -1043,6 +1147,17 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
                 if let sourceLayerIdentifier = sourceLayerIdentifier {
                     layer.sourceLayerIdentifier = sourceLayerIdentifier
                 }
+                if let minimumZoomLevel = minimumZoomLevel {
+                    layer.minimumZoomLevel = Float(minimumZoomLevel)
+                }
+                if let maximumZoomLevel = maximumZoomLevel {
+                    layer.maximumZoomLevel = Float(maximumZoomLevel)
+                }
+                if let filter = filter {
+                    if case let .failure(error) = setFilter(layer, filter) {
+                        return .failure(error)
+                    }
+                }
                 if let id = belowLayerId, let belowLayer = style.layer(withIdentifier: id) {
                     style.insertLayer(layer, below: belowLayer)
                 } else {
@@ -1053,12 +1168,38 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
                 }
             }
         }
+        return .success(())
+    }
+
+    func setFilter(_ layer: MGLStyleLayer, _ filter: String) -> Result<Void, MethodCallError> {
+        do {
+            let filter = try JSONSerialization.jsonObject(
+                with: filter.data(using: .utf8)!,
+                options: .fragmentsAllowed
+            )
+            if filter is NSNull {
+                return .success(())
+            }
+            let predicate = NSPredicate(mglJSONObject: filter)
+            if let layer = layer as? MGLVectorStyleLayer {
+                layer.predicate = predicate
+            } else {
+                return .failure(MethodCallError.invalidLayerType(
+                    details: "Layer '\(layer.identifier)' does not support filtering."
+                ))
+            }
+            return .success(())
+        } catch {
+            return .failure(MethodCallError.invalidExpression)
+        }
     }
 
     func addHillshadeLayer(
         sourceId: String,
         layerId: String,
         belowLayerId: String?,
+        minimumZoomLevel: Double?,
+        maximumZoomLevel: Double?,
         properties: [String: String]
     ) {
         if let style = mapView.style {
@@ -1068,6 +1209,12 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
                     hillshadeLayer: layer,
                     properties: properties
                 )
+                if let minimumZoomLevel = minimumZoomLevel {
+                    layer.minimumZoomLevel = Float(minimumZoomLevel)
+                }
+                if let maximumZoomLevel = maximumZoomLevel {
+                    layer.maximumZoomLevel = Float(maximumZoomLevel)
+                }
                 if let id = belowLayerId, let belowLayer = style.layer(withIdentifier: id) {
                     style.insertLayer(layer, below: belowLayer)
                 } else {
@@ -1081,6 +1228,8 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
         sourceId: String,
         layerId: String,
         belowLayerId: String?,
+        minimumZoomLevel: Double?,
+        maximumZoomLevel: Double?,
         properties: [String: String]
     ) {
         if let style = mapView.style {
@@ -1090,6 +1239,12 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
                     rasterLayer: layer,
                     properties: properties
                 )
+                if let minimumZoomLevel = minimumZoomLevel {
+                    layer.minimumZoomLevel = Float(minimumZoomLevel)
+                }
+                if let maximumZoomLevel = maximumZoomLevel {
+                    layer.maximumZoomLevel = Float(maximumZoomLevel)
+                }
                 if let id = belowLayerId, let belowLayer = style.layer(withIdentifier: id) {
                     style.insertLayer(layer, below: belowLayer)
                 } else {
@@ -1210,6 +1365,10 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
                         if let id = $0.identifier as? String,
                            let featureId = feature.identifier as? String
                         { return id == featureId }
+
+                        if let id = $0.identifier as? NSNumber,
+                           let featureId = feature.identifier as? NSNumber
+                        { return id == featureId }
                         return false
                     })
                 {
@@ -1218,6 +1377,8 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
 
                     source.shape = MGLShapeCollectionFeature(shapes: shapes)
                 }
+
+                addedShapesByLayer[sourceId] = source.shape
             }
 
         } catch {}

@@ -6,13 +6,15 @@ import 'dart:async';
 import 'dart:html';
 // ignore: unused_import
 import 'dart:js';
+import 'dart:js_util';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:flutter/services.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Element;
 
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:mapbox_gl_platform_interface/mapbox_gl_platform_interface.dart';

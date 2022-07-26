@@ -13,7 +13,8 @@ typedef void OnFeatureDragnCallback(dynamic id,
     {required Point<double> point,
     required LatLng origin,
     required LatLng current,
-    required LatLng delta});
+    required LatLng delta,
+    required DragEventType eventType});
 
 typedef void OnMapLongClickCallback(Point<double> point, LatLng coordinates);
 
@@ -79,11 +80,14 @@ class MapboxMapController extends ChangeNotifier {
 
     _mapboxGlPlatform.onFeatureDraggedPlatform.add((payload) {
       for (final fun in List<OnFeatureDragnCallback>.from(onFeatureDrag)) {
+        final DragEventType enmDragEventType = DragEventType.values
+            .firstWhere((element) => element.name == payload["eventType"]);
         fun(payload["id"],
             point: payload["point"],
             origin: payload["origin"],
             current: payload["current"],
-            delta: payload["delta"]);
+            delta: payload["delta"],
+            eventType: enmDragEventType);
       }
     });
 
@@ -290,14 +294,32 @@ class MapboxMapController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Triggers a resize event for the map on web (ignored on Android or iOS).
+  ///
+  /// Checks first if a resize is required or if it looks like it is already correctly resized.
+  /// If it looks good, the resize call will be skipped.
+  ///
+  /// To force resize map (without any checks) have a look at forceResizeWebMap()
+  void resizeWebMap() {
+    _mapboxGlPlatform.resizeWebMap();
+  }
+
+  /// Triggers a hard map resize event on web and does not check if it is required or not.
+  void forceResizeWebMap() {
+    _mapboxGlPlatform.forceResizeWebMap();
+  }
+
   /// Starts an animated change of the map camera position.
+  ///
+  /// [duration] is the amount of time, that the transition animation should take.
   ///
   /// The returned [Future] completes after the change has been started on the
   /// platform side.
   /// It returns true if the camera was successfully moved and false if the movement was canceled.
   /// Note: this currently always returns immediately with a value of null on iOS
-  Future<bool?> animateCamera(CameraUpdate cameraUpdate) async {
-    return _mapboxGlPlatform.animateCamera(cameraUpdate);
+  Future<bool?> animateCamera(CameraUpdate cameraUpdate,
+      {Duration? duration}) async {
+    return _mapboxGlPlatform.animateCamera(cameraUpdate, duration: duration);
   }
 
   /// Instantaneously re-position the camera.
@@ -372,11 +394,22 @@ class MapboxMapController extends ChangeNotifier {
   /// Setting [belowLayerId] adds the new layer below the given id.
   /// If [enableInteraction] is set the layer is considered for touch or drag
   /// events. [sourceLayer] is used to selected a specific source layer from
-  /// Vector source
+  /// Vector source.
+  /// [minzoom] is the minimum (inclusive) zoom level at which the layer is
+  /// visible.
+  /// [maxzoom] is the maximum (exclusive) zoom level at which the layer is
+  /// visible.
+  /// [filter] determines which features should be rendered in the layer.
+  /// Filters are written as [expressions].
+  ///
+  /// [expressions]: https://docs.mapbox.com/mapbox-gl-js/style-spec/expressions
   Future<void> addSymbolLayer(
       String sourceId, String layerId, SymbolLayerProperties properties,
       {String? belowLayerId,
       String? sourceLayer,
+      double? minzoom,
+      double? maxzoom,
+      dynamic filter,
       bool enableInteraction = true}) async {
     await _mapboxGlPlatform.addSymbolLayer(
       sourceId,
@@ -384,6 +417,9 @@ class MapboxMapController extends ChangeNotifier {
       properties.toJson(),
       belowLayerId: belowLayerId,
       sourceLayer: sourceLayer,
+      minzoom: minzoom,
+      maxzoom: maxzoom,
+      filter: filter,
       enableInteraction: enableInteraction,
     );
   }
@@ -398,11 +434,22 @@ class MapboxMapController extends ChangeNotifier {
   /// Setting [belowLayerId] adds the new layer below the given id.
   /// If [enableInteraction] is set the layer is considered for touch or drag
   /// events. [sourceLayer] is used to selected a specific source layer from
-  /// Vector source
+  /// Vector source.
+  /// [minzoom] is the minimum (inclusive) zoom level at which the layer is
+  /// visible.
+  /// [maxzoom] is the maximum (exclusive) zoom level at which the layer is
+  /// visible.
+  /// [filter] determines which features should be rendered in the layer.
+  /// Filters are written as [expressions].
+  ///
+  /// [expressions]: https://docs.mapbox.com/mapbox-gl-js/style-spec/expressions
   Future<void> addLineLayer(
       String sourceId, String layerId, LineLayerProperties properties,
       {String? belowLayerId,
       String? sourceLayer,
+      double? minzoom,
+      double? maxzoom,
+      dynamic filter,
       bool enableInteraction = true}) async {
     await _mapboxGlPlatform.addLineLayer(
       sourceId,
@@ -410,6 +457,9 @@ class MapboxMapController extends ChangeNotifier {
       properties.toJson(),
       belowLayerId: belowLayerId,
       sourceLayer: sourceLayer,
+      minzoom: minzoom,
+      maxzoom: maxzoom,
+      filter: filter,
       enableInteraction: enableInteraction,
     );
   }
@@ -424,11 +474,22 @@ class MapboxMapController extends ChangeNotifier {
   /// Setting [belowLayerId] adds the new layer below the given id.
   /// If [enableInteraction] is set the layer is considered for touch or drag
   /// events. [sourceLayer] is used to selected a specific source layer from
-  /// Vector source
+  /// Vector source.
+  /// [minzoom] is the minimum (inclusive) zoom level at which the layer is
+  /// visible.
+  /// [maxzoom] is the maximum (exclusive) zoom level at which the layer is
+  /// visible.
+  /// [filter] determines which features should be rendered in the layer.
+  /// Filters are written as [expressions].
+  ///
+  /// [expressions]: https://docs.mapbox.com/mapbox-gl-js/style-spec/expressions
   Future<void> addFillLayer(
       String sourceId, String layerId, FillLayerProperties properties,
       {String? belowLayerId,
       String? sourceLayer,
+      double? minzoom,
+      double? maxzoom,
+      dynamic filter,
       bool enableInteraction = true}) async {
     await _mapboxGlPlatform.addFillLayer(
       sourceId,
@@ -436,6 +497,9 @@ class MapboxMapController extends ChangeNotifier {
       properties.toJson(),
       belowLayerId: belowLayerId,
       sourceLayer: sourceLayer,
+      minzoom: minzoom,
+      maxzoom: maxzoom,
+      filter: filter,
       enableInteraction: enableInteraction,
     );
   }
@@ -450,11 +514,22 @@ class MapboxMapController extends ChangeNotifier {
   /// Setting [belowLayerId] adds the new layer below the given id.
   /// If [enableInteraction] is set the layer is considered for touch or drag
   /// events. [sourceLayer] is used to selected a specific source layer from
-  /// Vector source
+  /// Vector source.
+  /// [minzoom] is the minimum (inclusive) zoom level at which the layer is
+  /// visible.
+  /// [maxzoom] is the maximum (exclusive) zoom level at which the layer is
+  /// visible.
+  /// [filter] determines which features should be rendered in the layer.
+  /// Filters are written as [expressions].
+  ///
+  /// [expressions]: https://docs.mapbox.com/mapbox-gl-js/style-spec/expressions
   Future<void> addCircleLayer(
       String sourceId, String layerId, CircleLayerProperties properties,
       {String? belowLayerId,
       String? sourceLayer,
+      double? minzoom,
+      double? maxzoom,
+      dynamic filter,
       bool enableInteraction = true}) async {
     await _mapboxGlPlatform.addCircleLayer(
       sourceId,
@@ -462,6 +537,9 @@ class MapboxMapController extends ChangeNotifier {
       properties.toJson(),
       belowLayerId: belowLayerId,
       sourceLayer: sourceLayer,
+      minzoom: minzoom,
+      maxzoom: maxzoom,
+      filter: filter,
       enableInteraction: enableInteraction,
     );
   }
@@ -475,16 +553,25 @@ class MapboxMapController extends ChangeNotifier {
   ///
   /// Setting [belowLayerId] adds the new layer below the given id.
   /// [sourceLayer] is used to selected a specific source layer from
-  /// Raster source
+  /// Raster source.
+  /// [minzoom] is the minimum (inclusive) zoom level at which the layer is
+  /// visible.
+  /// [maxzoom] is the maximum (exclusive) zoom level at which the layer is
+  /// visible.
   Future<void> addRasterLayer(
       String sourceId, String layerId, RasterLayerProperties properties,
-      {String? belowLayerId, String? sourceLayer}) async {
+      {String? belowLayerId,
+      String? sourceLayer,
+      double? minzoom,
+      double? maxzoom}) async {
     await _mapboxGlPlatform.addRasterLayer(
       sourceId,
       layerId,
       properties.toJson(),
       belowLayerId: belowLayerId,
       sourceLayer: sourceLayer,
+      minzoom: minzoom,
+      maxzoom: maxzoom,
     );
   }
 
@@ -497,16 +584,25 @@ class MapboxMapController extends ChangeNotifier {
   ///
   /// Setting [belowLayerId] adds the new layer below the given id.
   /// [sourceLayer] is used to selected a specific source layer from
-  /// Raster source
+  /// Raster source.
+  /// [minzoom] is the minimum (inclusive) zoom level at which the layer is
+  /// visible.
+  /// [maxzoom] is the maximum (exclusive) zoom level at which the layer is
+  /// visible.
   Future<void> addHillshadeLayer(
       String sourceId, String layerId, HillshadeLayerProperties properties,
-      {String? belowLayerId, String? sourceLayer}) async {
+      {String? belowLayerId,
+      String? sourceLayer,
+      double? minzoom,
+      double? maxzoom}) async {
     await _mapboxGlPlatform.addHillshadeLayer(
       sourceId,
       layerId,
       properties.toJson(),
       belowLayerId: belowLayerId,
       sourceLayer: sourceLayer,
+      minzoom: minzoom,
+      maxzoom: maxzoom,
     );
   }
 
@@ -652,9 +748,7 @@ class MapboxMapController extends ChangeNotifier {
   ///
   /// The returned [Future] completes once listeners have been notified.
   Future<void> removeSymbols(Iterable<Symbol> symbols) async {
-    for (var symbol in symbols) {
-      await symbolManager!.remove(symbol);
-    }
+    await symbolManager!.removeAll(symbols);
     notifyListeners();
   }
 
@@ -744,10 +838,7 @@ class MapboxMapController extends ChangeNotifier {
   ///
   /// The returned [Future] completes once listeners have been notified.
   Future<void> removeLines(Iterable<Line> lines) async {
-    for (var line in lines) {
-      await lineManager!.remove(line);
-    }
-
+    await lineManager!.removeAll(lines);
     notifyListeners();
   }
 
@@ -841,9 +932,7 @@ class MapboxMapController extends ChangeNotifier {
   ///
   /// The returned [Future] completes once listeners have been notified.
   Future<void> removeCircles(Iterable<Circle> circles) async {
-    for (var circle in circles) {
-      await circleManager!.remove(circle);
-    }
+    await circleManager!.removeAll(circles);
     notifyListeners();
   }
 
@@ -942,10 +1031,7 @@ class MapboxMapController extends ChangeNotifier {
   ///
   /// The returned [Future] completes once listeners have been notified.
   Future<void> removeFills(Iterable<Fill> fills) async {
-    for (var fill in fills) {
-      await fillManager!.remove(fill);
-    }
-
+    await fillManager!.removeAll(fills);
     notifyListeners();
   }
 
@@ -1055,26 +1141,35 @@ class MapboxMapController extends ChangeNotifier {
   }
 
   /// Adds a Mapbox image layer to the map's style at render time.
-  Future<void> addImageLayer(String layerId, String imageSourceId) {
-    return _mapboxGlPlatform.addLayer(layerId, imageSourceId);
+  Future<void> addImageLayer(String layerId, String imageSourceId,
+      {double? minzoom, double? maxzoom}) {
+    return _mapboxGlPlatform.addLayer(layerId, imageSourceId, minzoom, maxzoom);
   }
 
   /// Adds a Mapbox image layer below the layer provided with belowLayerId to the map's style at render time.
   Future<void> addImageLayerBelow(
-      String layerId, String sourceId, String imageSourceId) {
-    return _mapboxGlPlatform.addLayerBelow(layerId, sourceId, imageSourceId);
+      String layerId, String sourceId, String imageSourceId,
+      {double? minzoom, double? maxzoom}) {
+    return _mapboxGlPlatform.addLayerBelow(
+        layerId, sourceId, imageSourceId, minzoom, maxzoom);
   }
 
   /// Adds a Mapbox image layer below the layer provided with belowLayerId to the map's style at render time. Only works for image sources!
   @Deprecated("This method was renamed to addImageLayerBelow for clarity.")
   Future<void> addLayerBelow(
-      String layerId, String sourceId, String imageSourceId) {
-    return _mapboxGlPlatform.addLayerBelow(layerId, sourceId, imageSourceId);
+      String layerId, String sourceId, String imageSourceId,
+      {double? minzoom, double? maxzoom}) {
+    return _mapboxGlPlatform.addLayerBelow(
+        layerId, sourceId, imageSourceId, minzoom, maxzoom);
   }
 
   /// Removes a Mapbox style layer
   Future<void> removeLayer(String layerId) {
     return _mapboxGlPlatform.removeLayer(layerId);
+  }
+
+  Future<void> setFilter(String layerId, dynamic filter) {
+    return _mapboxGlPlatform.setFilter(layerId, filter);
   }
 
   /// Returns the point on the screen that corresponds to a geographical coordinate ([latLng]). The screen location is in screen pixels (not display pixels) relative to the top left of the map (not of the whole screen)
@@ -1118,37 +1213,73 @@ class MapboxMapController extends ChangeNotifier {
   /// [HillshadeLayerProperties].
   /// [sourceLayer] is used to selected a specific source layer from Vector
   /// source.
+  /// [minzoom] is the minimum (inclusive) zoom level at which the layer is
+  /// visible.
+  /// [maxzoom] is the maximum (exclusive) zoom level at which the layer is
+  /// visible.
+  /// [filter] determines which features should be rendered in the layer.
+  /// Filters are written as [expressions].
+  /// [filter] is not supported by RasterLayer and HillshadeLayer.
+  ///
+  /// [expressions]: https://docs.mapbox.com/mapbox-gl-js/style-spec/expressions
   Future<void> addLayer(
       String sourceId, String layerId, LayerProperties properties,
       {String? belowLayerId,
       bool enableInteraction = true,
-      String? sourceLayer}) async {
+      String? sourceLayer,
+      double? minzoom,
+      double? maxzoom,
+      dynamic filter}) async {
     if (properties is FillLayerProperties) {
       addFillLayer(sourceId, layerId, properties,
           belowLayerId: belowLayerId,
           enableInteraction: enableInteraction,
-          sourceLayer: sourceLayer);
+          sourceLayer: sourceLayer,
+          minzoom: minzoom,
+          maxzoom: maxzoom,
+          filter: filter);
     } else if (properties is LineLayerProperties) {
       addLineLayer(sourceId, layerId, properties,
           belowLayerId: belowLayerId,
           enableInteraction: enableInteraction,
-          sourceLayer: sourceLayer);
+          sourceLayer: sourceLayer,
+          minzoom: minzoom,
+          maxzoom: maxzoom,
+          filter: filter);
     } else if (properties is SymbolLayerProperties) {
       addSymbolLayer(sourceId, layerId, properties,
           belowLayerId: belowLayerId,
           enableInteraction: enableInteraction,
-          sourceLayer: sourceLayer);
+          sourceLayer: sourceLayer,
+          minzoom: minzoom,
+          maxzoom: maxzoom,
+          filter: filter);
     } else if (properties is CircleLayerProperties) {
       addCircleLayer(sourceId, layerId, properties,
           belowLayerId: belowLayerId,
           enableInteraction: enableInteraction,
-          sourceLayer: sourceLayer);
+          sourceLayer: sourceLayer,
+          minzoom: minzoom,
+          maxzoom: maxzoom,
+          filter: filter);
     } else if (properties is RasterLayerProperties) {
+      if (filter != null) {
+        throw UnimplementedError("RasterLayer does not support filter");
+      }
       addRasterLayer(sourceId, layerId, properties,
-          belowLayerId: belowLayerId, sourceLayer: sourceLayer);
+          belowLayerId: belowLayerId,
+          sourceLayer: sourceLayer,
+          minzoom: minzoom,
+          maxzoom: maxzoom);
     } else if (properties is HillshadeLayerProperties) {
+      if (filter != null) {
+        throw UnimplementedError("HillShadeLayer does not support filter");
+      }
       addHillshadeLayer(sourceId, layerId, properties,
-          belowLayerId: belowLayerId, sourceLayer: sourceLayer);
+          belowLayerId: belowLayerId,
+          sourceLayer: sourceLayer,
+          minzoom: minzoom,
+          maxzoom: maxzoom);
     } else {
       throw UnimplementedError("Unknown layer type $properties");
     }

@@ -18,6 +18,8 @@ Future<void> installOfflineMapTiles(String tilesDb) async {
   );
 }
 
+enum DragEventType { start, drag, end }
+
 Future<dynamic> setOffline(
   bool offline, {
   String? accessToken,
@@ -29,6 +31,15 @@ Future<dynamic> setOffline(
         'accessToken': accessToken,
       },
     );
+
+Future<void> setHttpHeaders(Map<String, String> headers) {
+  return _globalChannel.invokeMethod(
+    'setHttpHeaders',
+    <String, dynamic>{
+      'headers': headers,
+    },
+  );
+}
 
 Future<List<OfflineRegion>> mergeOfflineRegions(
   String path, {
