@@ -22,13 +22,16 @@ class LayerState extends State {
   static final LatLng center = const LatLng(-33.86711, 151.1947171);
 
   late MapboxMapController controller;
-  Timer? timer;
+  Timer? bikeTimer;
+  Timer? filterTimer;
+  int filteredId = 0;
 
   @override
   Widget build(BuildContext context) {
     return MapboxMap(
       accessToken: MapsDemo.ACCESS_TOKEN,
       dragEnabled: false,
+      myLocationEnabled: true,
       onMapCreated: _onMapCreated,
       onMapClick: (point, latLong) =>
           print(point.toString() + latLong.toString()),
@@ -79,6 +82,7 @@ class LayerState extends State {
         'green'
       ], fillOpacity: 0.4),
       belowLayerId: "water",
+      filter: ['==', 'id', filteredId],
     );
 
     await controller.addLineLayer(
@@ -133,16 +137,23 @@ class LayerState extends State {
         iconAllowOverlap: true,
         textAllowOverlap: true,
       ),
+      minzoom: 11,
     );
-    timer = Timer.periodic(
-        Duration(milliseconds: 10),
-        (t) => controller.setGeoJsonSource(
-            "moving", _movingFeature(t.tick / 2000)));
+
+    bikeTimer = Timer.periodic(Duration(milliseconds: 10), (t) {
+      controller.setGeoJsonSource("moving", _movingFeature(t.tick / 2000));
+    });
+
+    filterTimer = Timer.periodic(Duration(seconds: 3), (t) {
+      filteredId = filteredId == 0 ? 1 : 0;
+      controller.setFilter('fills', ['==', 'id', filteredId]);
+    });
   }
 
   @override
   void dispose() {
-    timer?.cancel();
+    bikeTimer?.cancel();
+    filterTimer?.cancel();
     super.dispose();
   }
 }
@@ -184,7 +195,7 @@ final _fills = {
     {
       "type": "Feature",
       "id": 0, // web currently only supports number ids
-      "properties": <String, dynamic>{},
+      "properties": <String, dynamic>{'id': 0},
       "geometry": {
         "type": "Polygon",
         "coordinates": [
@@ -209,7 +220,7 @@ final _fills = {
     {
       "type": "Feature",
       "id": 1,
-      "properties": <String, dynamic>{},
+      "properties": <String, dynamic>{'id': 1},
       "geometry": {
         "type": "Polygon",
         "coordinates": [
