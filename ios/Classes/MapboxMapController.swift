@@ -921,9 +921,21 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
     /*
      *  MGLMapViewDelegate
      */
-    func mapView(_ mapView: MGLMapView, didFinishLoading _: MGLStyle) {
+    func mapView(_ mapView: MGLMapView, didFinishLoading style: MGLStyle) {
         isMapReady = true
         updateMyLocationEnabled()
+
+        // 将地图世界观设置为中国
+        style.layers.forEach { layer in
+            if layer.identifier == "admin-1-boundary"
+                || layer.identifier == "admin-0-boundary-disputed"
+                || layer.identifier == "admin-1-boundary-bg"
+                || layer.identifier == "admin-0-boundary-bg"
+            {
+                let lineLayer = style.layer(withIdentifier: layer.identifier) as? MGLLineStyleLayer
+                lineLayer?.predicate = NSPredicate(format: "MGL_MATCH(worldview, {'CN'}, YES, NO)==YES")
+            }
+        }
 
         if let initialTilt = initialTilt {
             let camera = mapView.camera

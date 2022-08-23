@@ -141,6 +141,8 @@ final class MapboxMapController
 
           updateMyLocationEnabled();
 
+          setWorldView(style);
+
           if (null != bounds) {
             mapboxMap.setLatLngBoundsForCameraTarget(bounds);
           }
@@ -1594,6 +1596,27 @@ final class MapboxMapController
       case Gravity.BOTTOM | Gravity.END:
         mapboxMap.getUiSettings().setAttributionMargins(0, 0, x, y);
         break;
+    }
+  }
+
+  // 将地图世界观设置为中国
+  private void setWorldView(Style style) {
+    for (Layer layer : style.getLayers()) {
+      if (layer.getId().equals("admin-0-boundary") ||
+              layer.getId().equals("admin-1-boundary") ||
+              layer.getId().equals("admin-0-boundary-disputed") ||
+              layer.getId().equals("admin-1-boundary-bg") ||
+              layer.getId().equals("admin-0-boundary-bg")) {
+
+        LineLayer lineLayer = style.getLayerAs(layer.getId());
+        if (lineLayer != null) {
+          lineLayer.setFilter(Expression.match(
+                  Expression.get("worldview"),
+                  Expression.all(Expression.literal("CN")),
+                  Expression.literal(true),
+                  Expression.literal(false)));
+        }
+      }
     }
   }
 
