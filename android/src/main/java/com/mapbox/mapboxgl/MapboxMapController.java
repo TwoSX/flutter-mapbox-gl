@@ -85,6 +85,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /** Controller of a single MapboxMaps MapView instance. */
@@ -687,6 +688,18 @@ final class MapboxMapController
             result.error("MAPBOX PLUGIN ERROR", e.toString(), null);
           }
         }
+        break;
+      }
+      case "map#getStyle": {
+        if (mapboxMap != null) {
+          try {
+            result.success(Objects.requireNonNull(mapboxMap.getStyle()).getUri());
+          } catch (Exception e) {
+            Log.d(TAG, e.toString());
+            result.error("MAPBOX PLUGIN ERROR", e.toString(), null);
+          }
+        }
+        result.success("");
         break;
       }
       case "map#getVisibleRegion":

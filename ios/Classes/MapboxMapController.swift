@@ -214,6 +214,8 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
                 mapView.styleURL = URL(string: style);
             }
             result(nil)
+        case "map#getStyle":
+            result(mapView.styleURL.absoluteString)
         case "map#queryRenderedFeatures":
             guard let arguments = methodCall.arguments as? [String: Any] else { return }
             var styleLayerIdentifiers: Set<String>?

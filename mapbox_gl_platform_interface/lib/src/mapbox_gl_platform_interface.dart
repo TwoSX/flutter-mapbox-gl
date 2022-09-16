@@ -66,6 +66,7 @@ abstract class MapboxGlPlatform {
   Future<void> updateContentInsets(EdgeInsets insets, bool animated);
   Future<void> setMapLanguage(String language);
   Future<void> setMapStyle(String style);
+  Future<String> getMapStyle();
   Future<void> setTelemetryEnabled(bool enabled);
 
   Future<bool> getTelemetryEnabled();
