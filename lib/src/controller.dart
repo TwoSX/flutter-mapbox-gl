@@ -73,7 +73,7 @@ class MapboxMapController extends ChangeNotifier {
 
     _mapboxGlPlatform.onFeatureLongTappedPlatform.add((payload) {
       for (final fun
-      in List<OnFeatureInteractionCallback>.from(onFeatureLongTapped)) {
+          in List<OnFeatureInteractionCallback>.from(onFeatureLongTapped)) {
         fun(payload["id"], payload["point"], payload["latLng"]);
       }
     });
@@ -220,13 +220,15 @@ class MapboxMapController extends ChangeNotifier {
   final ArgumentCallbacks<Symbol> onSymbolTapped = ArgumentCallbacks<Symbol>();
 
   /// Callbacks to receive tap events for symbols placed on this map.
-  final ArgumentCallbacks<Symbol> onSymbolLongTapped = ArgumentCallbacks<Symbol>();
+  final ArgumentCallbacks<Symbol> onSymbolLongTapped =
+      ArgumentCallbacks<Symbol>();
 
   /// Callbacks to receive tap events for symbols placed on this map.
   final ArgumentCallbacks<Circle> onCircleTapped = ArgumentCallbacks<Circle>();
 
   /// Callbacks to receive tap events for symbols placed on this map.
-  final ArgumentCallbacks<Circle> onCircleLongTapped = ArgumentCallbacks<Circle>();
+  final ArgumentCallbacks<Circle> onCircleLongTapped =
+      ArgumentCallbacks<Circle>();
 
   /// Callbacks to receive tap events for fills placed on this map.
   final ArgumentCallbacks<Fill> onFillTapped = ArgumentCallbacks<Fill>();
@@ -421,6 +423,16 @@ class MapboxMapController extends ChangeNotifier {
       maxzoom: maxzoom,
       filter: filter,
       enableInteraction: enableInteraction,
+    );
+  }
+
+  Future<void> setSymbolLayerProperties(
+    String layerId,
+    SymbolLayerProperties properties,
+  ) async {
+    await _mapboxGlPlatform.setSymbolLayerProperties(
+      layerId,
+      properties.toJson(),
     );
   }
 

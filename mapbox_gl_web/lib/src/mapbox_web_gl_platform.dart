@@ -831,6 +831,8 @@ class MapboxWebGlPlatform extends MapboxGlPlatform
         enableInteraction: false);
   }
 
+
+
   Future<void> _addLayer(String sourceId, String layerId,
       Map<String, dynamic> properties, String layerType,
       {String? belowLayerId,
@@ -991,5 +993,15 @@ class MapboxWebGlPlatform extends MapboxGlPlatform
   @override
   void forceResizeWebMap() {
     _map.resize();
+  }
+
+  @override
+  Future<void> setMapStyle(String style) async {
+    print('setMapStyle方法在web上没有实现');
+  }
+
+  @override
+  Future<void> setSymbolLayerProperties(String layerId, Map<String, dynamic> properties) async {
+    print('setSymbolLayerProperties方法在web上没有实现');
   }
 }
