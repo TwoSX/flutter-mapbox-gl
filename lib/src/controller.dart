@@ -667,6 +667,11 @@ class MapboxMapController extends ChangeNotifier {
     return _mapboxGlPlatform.setMapStyle(style);
   }
 
+  /// 获取地图样式
+  Future<String> getMapStyle() async {
+    return _mapboxGlPlatform.getMapStyle();
+  }
+
   /// Enables or disables the collection of anonymized telemetry data.
   ///
   /// The returned [Future] completes after the change has been made on the
