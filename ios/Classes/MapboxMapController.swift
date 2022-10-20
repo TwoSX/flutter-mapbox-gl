@@ -712,14 +712,18 @@ class MapboxMapController: NSObject, FlutterPlatformView, MGLMapViewDelegate, Ma
             guard let geojson = arguments["geojsonFeature"] as? String else { return }
             setFeature(sourceId: sourceId, geojsonFeature: geojson)
             result(nil)
+
         case "symbolLayer#setProperties":
+            guard let arguments = methodCall.arguments as? [String: Any] else { return }
             guard let layerId = arguments["layerId"] as? String else { return }
             guard let properties = arguments["properties"] as? [String: String] else { return }
             guard let layer = mapView.style?.layer(withIdentifier: layerId) else {
                 result(nil)
                 return
             }
-            LayerPropertyConverter.addSymbolProperties(symbolLayer: layer,properties: properties)
+            LayerPropertyConverter.addSymbolProperties(symbolLayer: layer as! MGLSymbolStyleLayer,properties: properties)
+            result(nil)
+
         default:
             result(FlutterMethodNotImplemented)
         }
